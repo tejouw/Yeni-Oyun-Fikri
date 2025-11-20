@@ -11,85 +11,70 @@ Oyunun temel sistemleri **%100 tamamlandı** ve oynanabilir durumda. Ancak tam b
 **Gerekli:**
 - Unity 2022.3 LTS projesi oluşturulmalı
 - URP (Universal Render Pipeline) kurulmalı
-- Post-Processing stack kurulmalı
-- TextMeshPro import edilmeli
 
 **Nasıl:**
 ```
 1. Unity Hub → New Project → 3D (URP) Template
-2. Window → Package Manager → Install:
-   - Universal RP
-   - UI Toolkit
-   - TextMeshPro
+2. Done! (Package'ler template ile gelir)
 ```
+
+**Süre:** 5 dakika
 
 ---
 
-### 2. ScriptableObject Data Oluşturma
-**Durum:** ❌ Eksik - Sadece kod var, veri yok
+### 2. Scripts Kopyalama
+**Durum:** ❌ Yapılmadı
 **Gerekli:**
-
-#### A. Ship Data (En Az 3 Tane)
-- `ship_starter` (Triangle, balanced)
-- `ship_tank` (Pentagon, high HP)
-- `ship_speed` (Arrow, fast)
+- Assets/Scripts klasörünü Unity projesine kopyala
 
 **Nasıl:**
-```
-Unity Editor'de:
-1. Assets/Resources/Data/Ships klasörü oluştur
-2. Right-click → Create → Neon Survivors → Ship Data
-3. shipID = "ship_starter" yap
-4. Stats doldur
-5. Repeat for other ships
+```bash
+# Clone repo
+git clone [repo-url]
+
+# Kopyala
+cp -r Yeni-Oyun-Fikri/Assets/Scripts YourUnityProject/Assets/
+
+# VEYA manuel: Scripts klasörünü sürükle-bırak
 ```
 
-#### B. Enemy Data (En Az 3 Tane)
-- `enemy_basic` (Cube, chase)
-- `enemy_fast` (Pyramid, zigzag)
-- `enemy_tank` (Sphere, slow/tanky)
-
-**Nasıl:**
-```
-Assets/Resources/Data/Enemies klasörü oluştur
-Create → Neon Survivors → Enemy Data
-```
-
-#### C. Upgrade Data (En Az 10 Tane)
-- Damage +20%
-- Fire Rate +15%
-- +1 Projectile
-- Pierce +1
-- Explosion
-- Chain Lightning
-- Critical Hit +10%
-- Movement Speed +10%
-- Max HP +50
-- Lifesteal +5%
-
-**Nasıl:**
-```
-Assets/Resources/Data/Upgrades klasörü oluştur
-Create → Neon Survivors → Upgrade Data
-Her upgrade için modifiers doldur
-```
+**Süre:** 2 dakika
 
 ---
 
 ### 3. Scene Setup
 **Durum:** ❌ Yapılmadı
 **Gerekli:**
-- GamePlay scene oluştur
-- GameSetup GameObject ekle
-- GameSetup.cs script attach et
+- Empty GameObject + GameSetup script
 
 **Nasıl:**
 ```
-1. File → New Scene
-2. Create Empty GameObject → "GameSetup"
-3. Add Component → GameSetup
-4. Save Scene as "GamePlay"
+1. Hierarchy → Create Empty
+2. Add Component → GameSetup
+3. Play! ▶️
 ```
+
+**Süre:** 30 saniye
+
+---
+
+## ✅ ARTIK GEREK YOK! (Runtime Data Sistemi Eklendi)
+
+### ~~ScriptableObject Data Oluşturma~~
+**Durum:** ✅ TAMAMLANDI!
+**Çözüm:** GameDataInitializer.cs runtime'da her şeyi oluşturuyor
+
+**Artık Manuel Oluşturmana Gerek Yok:**
+- ✅ 15 Ship data (runtime oluşturuluyor)
+- ✅ 6 Enemy data (runtime oluşturuluyor)
+- ✅ 25+ Upgrade data (runtime oluşturuluyor)
+- ✅ 5 Weapon data (runtime oluşturuluyor)
+
+**Resources klasörü?** Gerek yok!
+**Manuel ScriptableObject?** Gerek yok!
+**Data files?** Hepsi kod içinde!
+
+Play'e basınca otomatik oluşuyor! 🎉
 
 ---
 
