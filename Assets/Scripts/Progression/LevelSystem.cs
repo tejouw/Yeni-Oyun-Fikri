@@ -41,25 +41,16 @@ namespace NeonSurvivors.Player
 
         void LoadUpgradeData()
         {
-            // Load all upgrade ScriptableObjects from Resources
-            UpgradeData[] upgrades = Resources.LoadAll<UpgradeData>("Data/Upgrades");
-            if (upgrades.Length > 0)
+            // Load upgrades from GameDataInitializer
+            if (GameDataInitializer.Instance != null)
             {
-                allUpgrades.AddRange(upgrades);
-                Debug.Log($"Loaded {upgrades.Length} upgrade types");
+                allUpgrades = GameDataInitializer.Instance.GetAllUpgrades();
+                Debug.Log($"Loaded {allUpgrades.Count} upgrade types from GameDataInitializer");
             }
             else
             {
-                Debug.LogWarning("No upgrade data found in Resources/Data/Upgrades");
-                CreateDefaultUpgrades();
+                Debug.LogWarning("GameDataInitializer not found! No upgrades loaded.");
             }
-        }
-
-        void CreateDefaultUpgrades()
-        {
-            // Create some default upgrades programmatically if none exist
-            // This is a fallback
-            Debug.Log("Creating default upgrades");
         }
 
         public void AddXP(int amount)

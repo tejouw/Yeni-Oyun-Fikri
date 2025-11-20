@@ -41,16 +41,15 @@ namespace NeonSurvivors.Player
 
         void LoadShipData()
         {
-            // Load all ship ScriptableObjects from Resources
-            ShipData[] ships = Resources.LoadAll<ShipData>("Data/Ships");
-            if (ships.Length > 0)
+            // Load ships from GameDataInitializer
+            if (GameDataInitializer.Instance != null)
             {
-                allShips.AddRange(ships);
-                Debug.Log($"Loaded {ships.Length} ship types");
+                allShips = GameDataInitializer.Instance.GetAllShips();
+                Debug.Log($"Loaded {allShips.Count} ship types from GameDataInitializer");
             }
             else
             {
-                Debug.LogWarning("No ship data found in Resources/Data/Ships");
+                Debug.LogWarning("GameDataInitializer not found! No ships loaded.");
             }
         }
 

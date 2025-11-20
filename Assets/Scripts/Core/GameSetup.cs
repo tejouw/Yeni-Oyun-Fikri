@@ -37,6 +37,9 @@ namespace NeonSurvivors.Core
 
         void Start()
         {
+            // Initialize game data first
+            InitializeGameData();
+
             // Create player
             CreatePlayer();
 
@@ -45,6 +48,28 @@ namespace NeonSurvivors.Core
 
             // Create pool prefabs
             CreatePooledPrefabs();
+
+            // Auto-start game after short delay
+            Invoke("AutoStartGame", 0.5f);
+        }
+
+        void InitializeGameData()
+        {
+            if (GameDataInitializer.Instance == null)
+            {
+                GameObject dataObj = new GameObject("GameDataInitializer");
+                dataObj.AddComponent<GameDataInitializer>();
+                Debug.Log("Created GameDataInitializer");
+            }
+        }
+
+        void AutoStartGame()
+        {
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.StartGame();
+                Debug.Log("Game auto-started!");
+            }
         }
 
         void CreateManagers()
@@ -162,12 +187,26 @@ namespace NeonSurvivors.Core
             player.AddComponent<PlayerWeapon>();
             player.AddComponent<PlayerUpgrades>();
 
-            // Get current ship data
-            ShipData currentShip = ShipManager.Instance?.GetCurrentShip();
+            // Get current ship data from GameDataInitializer
+            ShipData currentShip = null;
+
+            if (GameDataInitializer.Instance != null)
+            {
+                // Try to get from ShipManager first
+                currentShip = ShipManager.Instance?.GetCurrentShip();
+
+                // If not found, get starter ship from data
+                if (currentShip == null)
+                {
+                    currentShip = GameDataInitializer.Instance.GetShip("ship_starter");
+                    Debug.Log("Using starter ship from GameDataInitializer");
+                }
+            }
+
             if (currentShip == null)
             {
-                Debug.LogWarning("No ship selected, creating default ship");
-                currentShip = CreateDefaultShip();
+                Debug.LogError("No ship data available! GameDataInitializer may not be initialized yet.");
+                return;
             }
 
             // Set ship data
@@ -175,25 +214,6 @@ namespace NeonSurvivors.Core
             controller.currentShip = currentShip;
 
             Debug.Log($"Player created with ship: {currentShip.shipName}");
-        }
-
-        ShipData CreateDefaultShip()
-        {
-            ShipData defaultShip = ScriptableObject.CreateInstance<ShipData>();
-            defaultShip.shipID = "ship_starter";
-            defaultShip.shipName = "Starter Ship";
-            defaultShip.maxHealth = 100f;
-            defaultShip.moveSpeed = 5f;
-            defaultShip.baseDamage = 10f;
-            defaultShip.fireRate = 1f;
-            defaultShip.meshType = ShipMeshType.Triangle;
-            defaultShip.primaryColor = Color.cyan;
-            defaultShip.emissionColor = Color.cyan;
-            defaultShip.meshScale = 1f;
-            defaultShip.abilityType = ShipAbilityType.None;
-            defaultShip.unlockType = UnlockType.Default;
-
-            return defaultShip;
         }
 
         void SetupCamera()
@@ -223,42 +243,22 @@ namespace NeonSurvivors.Core
             GameObject spawnerObj = new GameObject("EnemySpawner");
             EnemySpawner spawner = spawnerObj.AddComponent<EnemySpawner>();
 
-            // Load enemy data
-            EnemyData[] enemyTypes = Resources.LoadAll<EnemyData>("Data/Enemies");
-            if (enemyTypes.Length > 0)
+            // Load enemy data from GameDataInitializer
+            if (GameDataInitializer.Instance != null)
             {
-                spawner.enemyTypes.AddRange(enemyTypes);
+                List<EnemyData> enemies = GameDataInitializer.Instance.GetAllEnemies();
+                spawner.enemyTypes.AddRange(enemies);
+                Debug.Log($"Loaded {enemies.Count} enemy types from GameDataInitializer");
             }
             else
             {
-                Debug.LogWarning("No enemy data found, creating defaults");
-                CreateDefaultEnemyData(spawner);
+                Debug.LogError("GameDataInitializer not found! Cannot load enemy data.");
             }
 
             // Create pools
             SetupObjectPools();
 
             Debug.Log("Pooled prefabs created");
-        }
-
-        void CreateDefaultEnemyData(EnemySpawner spawner)
-        {
-            // Basic enemy
-            EnemyData basicEnemy = ScriptableObject.CreateInstance<EnemyData>();
-            basicEnemy.enemyID = "enemy_basic";
-            basicEnemy.enemyName = "Basic Enemy";
-            basicEnemy.enemyType = EnemyType.Basic;
-            basicEnemy.baseHealth = 10f;
-            basicEnemy.moveSpeed = 3f;
-            basicEnemy.damage = 10f;
-            basicEnemy.goldValue = 10;
-            basicEnemy.xpValue = 10;
-            basicEnemy.meshType = EnemyMeshType.Cube;
-            basicEnemy.enemyColor = Color.red;
-            basicEnemy.meshScale = 0.5f;
-            basicEnemy.behavior = EnemyBehavior.ChasePlayer;
-
-            spawner.enemyTypes.Add(basicEnemy);
         }
 
         void SetupObjectPools()
