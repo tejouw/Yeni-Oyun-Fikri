@@ -51,7 +51,7 @@ namespace NeonSurvivors.Enemy
 
         void Update()
         {
-            if (!GameManager.Instance.isGameRunning)
+            if (GameManager.Instance == null || !GameManager.Instance.isGameRunning)
                 return;
 
             // Update wave
