@@ -41,7 +41,8 @@ namespace NeonSurvivors.Player
 
         void Update()
         {
-            if (!GameManager.Instance.isGameRunning)
+            // Null check for GameManager
+            if (GameManager.Instance == null || !GameManager.Instance.isGameRunning)
                 return;
 
             fireTimer += Time.deltaTime;
@@ -112,6 +113,13 @@ namespace NeonSurvivors.Player
 
         void FireProjectile(Vector3 direction)
         {
+            // Null check for PoolManager
+            if (PoolManager.Instance == null)
+            {
+                Debug.LogWarning("PoolManager not found!");
+                return;
+            }
+
             // Spawn projectile from pool
             GameObject projectileObj = PoolManager.Instance.SpawnFromPool("Projectile_Player", transform.position, Quaternion.identity);
 
