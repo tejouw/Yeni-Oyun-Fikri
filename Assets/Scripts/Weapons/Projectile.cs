@@ -33,6 +33,9 @@ namespace NeonSurvivors.Weapons
         private Rigidbody rb;
         private HashSet<GameObject> hitEnemies = new HashSet<GameObject>();
 
+        // Performance: Reusable array for Physics.OverlapSphereNonAlloc
+        private Collider[] overlapResults = new Collider[50];
+
         void Awake()
         {
             rb = GetComponent<Rigidbody>();
@@ -47,6 +50,12 @@ namespace NeonSurvivors.Weapons
         void OnEnable()
         {
             lifeTimer = 0f;
+            hitEnemies.Clear();
+        }
+
+        void OnDisable()
+        {
+            // Clean up hit enemies on disable to prevent memory bloat
             hitEnemies.Clear();
         }
 
@@ -143,7 +152,9 @@ namespace NeonSurvivors.Weapons
                 if (bounceRemaining > 0)
                 {
                     bounceRemaining--;
-                    direction = Vector3.Reflect(direction, other.transform.forward);
+                    // Use contact normal if available, otherwise fallback to generic reflection
+                    Vector3 normal = (transform.position - other.transform.position).normalized;
+                    direction = Vector3.Reflect(direction, normal);
                 }
                 else
                 {
@@ -169,11 +180,13 @@ namespace NeonSurvivors.Weapons
 
         void ApplyExplosion(Vector3 center)
         {
-            Collider[] hitColliders = Physics.OverlapSphere(center, explosionRadius);
+            // Use NonAlloc version to avoid GC allocation
+            int hitCount = Physics.OverlapSphereNonAlloc(center, explosionRadius, overlapResults);
 
-            foreach (Collider hit in hitColliders)
+            for (int i = 0; i < hitCount; i++)
             {
-                if (hit.CompareTag("Enemy") && !hitEnemies.Contains(hit.gameObject))
+                Collider hit = overlapResults[i];
+                if (hit != null && hit.CompareTag("Enemy") && !hitEnemies.Contains(hit.gameObject))
                 {
                     EnemyBase enemy = hit.GetComponent<EnemyBase>();
                     if (enemy != null)
@@ -240,7 +253,17 @@ namespace NeonSurvivors.Weapons
         void ReturnToPool()
         {
             hitEnemies.Clear();
-            PoolManager.Instance.ReturnToPool("Projectile_Player", gameObject);
+
+            // Null check for PoolManager
+            if (PoolManager.Instance != null)
+            {
+                PoolManager.Instance.ReturnToPool("Projectile_Player", gameObject);
+            }
+            else
+            {
+                // Fallback: Destroy if pool manager not available
+                Destroy(gameObject);
+            }
         }
     }
 }

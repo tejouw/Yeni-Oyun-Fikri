@@ -29,6 +29,11 @@ namespace NeonSurvivors
         private VisualElement healthBar;
         private VisualElement xpBar;
 
+        // Performance: Update time display at fixed interval, not every frame
+        private float timeDisplayUpdateInterval = 0.1f;
+        private float timeDisplayUpdateTimer = 0f;
+        private int lastDisplayedSeconds = -1;
+
         void Awake()
         {
             if (_instance != null && _instance != this)
@@ -275,7 +280,13 @@ namespace NeonSurvivors
         {
             if (GameManager.Instance != null && GameManager.Instance.isGameRunning)
             {
-                UpdateTimeDisplay();
+                // Performance: Update time display at reduced frequency
+                timeDisplayUpdateTimer += Time.deltaTime;
+                if (timeDisplayUpdateTimer >= timeDisplayUpdateInterval)
+                {
+                    UpdateTimeDisplay();
+                    timeDisplayUpdateTimer = 0f;
+                }
             }
         }
 
@@ -302,26 +313,33 @@ namespace NeonSurvivors
             if (timeLabel != null && GameManager.Instance != null)
             {
                 float time = GameManager.Instance.survivalTime;
-                int minutes = Mathf.FloorToInt(time / 60f);
-                int seconds = Mathf.FloorToInt(time % 60f);
-                timeLabel.text = $"{minutes}:{seconds:00}";
+                int totalSeconds = Mathf.FloorToInt(time);
+
+                // Performance: Only update text if seconds changed
+                if (totalSeconds != lastDisplayedSeconds)
+                {
+                    int minutes = totalSeconds / 60;
+                    int seconds = totalSeconds % 60;
+                    timeLabel.text = $"{minutes}:{seconds:00}";
+                    lastDisplayedSeconds = totalSeconds;
+                }
             }
         }
 
         public void UpdateHealthBar(float current, float max)
         {
-            if (healthBar != null)
+            if (healthBar != null && max > 0)
             {
-                float percentage = (current / max) * 100f;
+                float percentage = Mathf.Clamp01(current / max) * 100f;
                 healthBar.style.width = Length.Percent(percentage);
             }
         }
 
         public void UpdateXPBar(int current, int required)
         {
-            if (xpBar != null)
+            if (xpBar != null && required > 0)
             {
-                float percentage = ((float)current / required) * 100f;
+                float percentage = Mathf.Clamp01((float)current / required) * 100f;
                 xpBar.style.width = Length.Percent(percentage);
             }
         }
@@ -345,6 +363,14 @@ namespace NeonSurvivors
 
             // Clear previous cards
             VisualElement cardsContainer = levelUpScreen.Q<VisualElement>("CardsContainer");
+
+            // Null check for cardsContainer
+            if (cardsContainer == null)
+            {
+                Debug.LogError("CardsContainer not found in level up screen!");
+                return;
+            }
+
             cardsContainer.Clear();
 
             // Create upgrade cards

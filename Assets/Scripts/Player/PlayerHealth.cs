@@ -55,8 +55,9 @@ namespace NeonSurvivors.Player
 
         public void SetMaxHealth(float newMaxHealth)
         {
-            float healthPercentage = currentHealth / maxHealth;
-            maxHealth = newMaxHealth;
+            // Prevent division by zero
+            float healthPercentage = maxHealth > 0 ? currentHealth / maxHealth : 1f;
+            maxHealth = Mathf.Max(1f, newMaxHealth); // Minimum 1 HP
             currentHealth = maxHealth * healthPercentage;
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
 
@@ -134,7 +135,8 @@ namespace NeonSurvivors.Player
 
         public float GetHealthPercentage()
         {
-            return currentHealth / maxHealth;
+            // Prevent division by zero
+            return maxHealth > 0 ? currentHealth / maxHealth : 0f;
         }
 
         public bool IsAlive()
@@ -149,16 +151,20 @@ namespace NeonSurvivors.Player
 
         public void AddMaxHealth(float additionalHealth)
         {
-            float percentage = currentHealth / maxHealth;
+            // Prevent division by zero
+            float percentage = maxHealth > 0 ? currentHealth / maxHealth : 1f;
             maxHealth += additionalHealth;
+            maxHealth = Mathf.Max(1f, maxHealth); // Minimum 1 HP
             currentHealth = maxHealth * percentage;
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }
 
         public void MultiplyMaxHealth(float multiplier)
         {
-            float percentage = currentHealth / maxHealth;
+            // Prevent division by zero
+            float percentage = maxHealth > 0 ? currentHealth / maxHealth : 1f;
             maxHealth *= multiplier;
+            maxHealth = Mathf.Max(1f, maxHealth); // Minimum 1 HP
             currentHealth = maxHealth * percentage;
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
         }

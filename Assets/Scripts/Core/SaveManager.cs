@@ -40,6 +40,17 @@ namespace NeonSurvivors.Core
         {
             try
             {
+                // Null check for GameManager
+                if (GameManager.Instance == null)
+                {
+                    Debug.LogWarning("Cannot save: GameManager not initialized");
+                    return;
+                }
+
+                // Convert dictionary to serializable format
+                Dictionary<string, int> workshopUpgrades = WorkshopManager.Instance != null ? WorkshopManager.Instance.GetUpgradeLevels() : new Dictionary<string, int>();
+                SerializableDictionary<string, int> serializableWorkshop = new SerializableDictionary<string, int>(workshopUpgrades);
+
                 GameData data = new GameData
                 {
                     // Currency
@@ -54,8 +65,9 @@ namespace NeonSurvivors.Core
                     unlockedShipIDs = ShipManager.Instance != null ? ShipManager.Instance.GetUnlockedShipIDs() : new List<string> { "ship_starter" },
                     currentShipID = ShipManager.Instance != null ? ShipManager.Instance.GetCurrentShipID() : "ship_starter",
 
-                    // Workshop
-                    workshopUpgrades = WorkshopManager.Instance != null ? WorkshopManager.Instance.GetUpgradeLevels() : new Dictionary<string, int>(),
+                    // Workshop (serializable format)
+                    workshopUpgradeKeys = serializableWorkshop.keys,
+                    workshopUpgradeValues = serializableWorkshop.values,
 
                     // Stats
                     totalKills = StatsManager.Instance != null ? StatsManager.Instance.totalKills : 0,
@@ -82,6 +94,13 @@ namespace NeonSurvivors.Core
         {
             try
             {
+                // Null check for GameManager
+                if (GameManager.Instance == null)
+                {
+                    Debug.LogWarning("Cannot load: GameManager not initialized");
+                    return;
+                }
+
                 if (!PlayerPrefs.HasKey(SAVE_KEY))
                 {
                     Debug.Log("No save data found, starting new game");
@@ -109,7 +128,16 @@ namespace NeonSurvivors.Core
 
                 if (WorkshopManager.Instance != null)
                 {
-                    WorkshopManager.Instance.LoadUpgradeLevels(data.workshopUpgrades);
+                    // Reconstruct dictionary from lists
+                    Dictionary<string, int> workshopUpgrades = new Dictionary<string, int>();
+                    if (data.workshopUpgradeKeys != null && data.workshopUpgradeValues != null)
+                    {
+                        for (int i = 0; i < Mathf.Min(data.workshopUpgradeKeys.Count, data.workshopUpgradeValues.Count); i++)
+                        {
+                            workshopUpgrades[data.workshopUpgradeKeys[i]] = data.workshopUpgradeValues[i];
+                        }
+                    }
+                    WorkshopManager.Instance.LoadUpgradeLevels(workshopUpgrades);
                 }
 
                 if (StatsManager.Instance != null)
@@ -131,6 +159,13 @@ namespace NeonSurvivors.Core
 
         void InitializeNewGame()
         {
+            // Null check for GameManager
+            if (GameManager.Instance == null)
+            {
+                Debug.LogWarning("Cannot initialize new game: GameManager not found");
+                return;
+            }
+
             GameManager.Instance.currentGold = 0;
             GameManager.Instance.currentGems = 0;
 
@@ -204,8 +239,9 @@ namespace NeonSurvivors.Core
         public List<string> unlockedShipIDs;
         public string currentShipID;
 
-        // Workshop
-        public Dictionary<string, int> workshopUpgrades;
+        // Workshop (serialized as separate lists since Unity can't serialize Dictionary directly)
+        public List<string> workshopUpgradeKeys;
+        public List<int> workshopUpgradeValues;
 
         // Stats
         public int totalKills;

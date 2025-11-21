@@ -80,33 +80,53 @@ namespace NeonSurvivors.Core
                 return null;
             }
 
-            GameObject objectToSpawn = poolDictionary[tag].Dequeue();
+            GameObject objectToSpawn;
+
+            // Dequeue if available, otherwise create new
+            if (poolDictionary[tag].Count > 0)
+            {
+                objectToSpawn = poolDictionary[tag].Dequeue();
+            }
+            else
+            {
+                Debug.LogWarning($"Pool '{tag}' exhausted, creating new object");
+                objectToSpawn = Instantiate(prefabDictionary[tag], poolParents[tag]);
+            }
 
             if (objectToSpawn == null)
             {
-                Debug.LogWarning($"Pool '{tag}' returned null object, creating new one");
-                objectToSpawn = Instantiate(prefabDictionary[tag], poolParents[tag]);
+                Debug.LogError($"Failed to get object from pool '{tag}'");
+                return null;
             }
 
             objectToSpawn.SetActive(true);
             objectToSpawn.transform.position = position;
             objectToSpawn.transform.rotation = rotation;
 
-            poolDictionary[tag].Enqueue(objectToSpawn);
-
             return objectToSpawn;
         }
 
         public void ReturnToPool(string tag, GameObject obj)
         {
+            if (obj == null)
+                return;
+
             if (!poolDictionary.ContainsKey(tag))
             {
+                Debug.LogWarning($"Pool '{tag}' not found, destroying object");
                 Destroy(obj);
+                return;
+            }
+
+            if (!poolParents.ContainsKey(tag))
+            {
+                Debug.LogError($"Pool parent for '{tag}' not found");
                 return;
             }
 
             obj.SetActive(false);
             obj.transform.SetParent(poolParents[tag]);
+            poolDictionary[tag].Enqueue(obj);
         }
 
         public void ClearPool(string tag)
