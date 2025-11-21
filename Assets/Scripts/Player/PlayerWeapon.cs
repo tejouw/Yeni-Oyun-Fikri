@@ -36,6 +36,11 @@ namespace NeonSurvivors.Player
         public LayerMask enemyLayer;
         private Transform currentTarget;
 
+        // Performance optimization: Cache enemy search
+        private float targetSearchInterval = 0.1f; // Search every 0.1 seconds
+        private float targetSearchTimer = 0f;
+        private List<GameObject> cachedEnemies = new List<GameObject>();
+
         [Header("Firing")]
         private float fireTimer = 0f;
 
@@ -46,10 +51,24 @@ namespace NeonSurvivors.Player
                 return;
 
             fireTimer += Time.deltaTime;
+            targetSearchTimer += Time.deltaTime;
 
-            if (fireTimer >= 1f / fireRate)
+            // Update target less frequently to reduce GC
+            if (targetSearchTimer >= targetSearchInterval)
             {
                 FindNearestTarget();
+                targetSearchTimer = 0f;
+            }
+
+            // Validate current target still exists and is active
+            if (currentTarget != null && !currentTarget.gameObject.activeInHierarchy)
+            {
+                currentTarget = null;
+            }
+
+            // Fire weapon - added fireRate > 0 check to prevent division by zero
+            if (fireRate > 0f && fireTimer >= 1f / fireRate)
+            {
                 if (currentTarget != null)
                 {
                     FireWeapon();
@@ -60,6 +79,8 @@ namespace NeonSurvivors.Player
 
         void FindNearestTarget()
         {
+            // Reuse cached list to reduce GC allocation
+            cachedEnemies.Clear();
             GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
 
             if (enemies.Length == 0)
@@ -73,7 +94,7 @@ namespace NeonSurvivors.Player
 
             foreach (GameObject enemy in enemies)
             {
-                if (!enemy.activeInHierarchy)
+                if (enemy == null || !enemy.activeInHierarchy)
                     continue;
 
                 float distance = Vector3.Distance(transform.position, enemy.transform.position);

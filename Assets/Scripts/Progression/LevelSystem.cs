@@ -98,20 +98,29 @@ namespace NeonSurvivors.Player
                 return;
             }
 
-            List<UpgradeData> selectedUpgrades = SelectThreeRandomUpgrades();
-
-            // Pause game
-            Time.timeScale = 0f;
-
-            // Show UI (will be implemented in UI system)
-            if (UIManager.Instance != null)
+            try
             {
-                UIManager.Instance.ShowLevelUpScreen(selectedUpgrades);
+                List<UpgradeData> selectedUpgrades = SelectThreeRandomUpgrades();
+
+                // Pause game
+                Time.timeScale = 0f;
+
+                // Show UI (will be implemented in UI system)
+                if (UIManager.Instance != null)
+                {
+                    UIManager.Instance.ShowLevelUpScreen(selectedUpgrades);
+                }
+                else
+                {
+                    Debug.LogWarning("UIManager not found, cannot show level up screen");
+                    Time.timeScale = 1f; // Resume if UI not available
+                }
             }
-            else
+            catch (Exception e)
             {
-                Debug.LogWarning("UIManager not found, cannot show level up screen");
-                Time.timeScale = 1f; // Resume if UI not available
+                Debug.LogError($"Error showing upgrade selection: {e.Message}");
+                // Critical: Always restore timeScale on error to prevent game freeze
+                Time.timeScale = 1f;
             }
         }
 
@@ -157,21 +166,38 @@ namespace NeonSurvivors.Player
 
         public void OnUpgradeSelected(UpgradeData upgrade)
         {
-            // Apply upgrade to player
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
+            try
             {
-                PlayerUpgrades playerUpgrades = player.GetComponent<PlayerUpgrades>();
-                if (playerUpgrades != null)
+                // Apply upgrade to player
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
                 {
-                    playerUpgrades.ApplyUpgrade(upgrade);
+                    PlayerUpgrades playerUpgrades = player.GetComponent<PlayerUpgrades>();
+                    if (playerUpgrades != null)
+                    {
+                        playerUpgrades.ApplyUpgrade(upgrade);
+                    }
+                    else
+                    {
+                        Debug.LogWarning("PlayerUpgrades component not found on player");
+                    }
                 }
+                else
+                {
+                    Debug.LogWarning("Player GameObject not found");
+                }
+
+                Debug.Log($"Selected upgrade: {upgrade.upgradeName}");
             }
-
-            // Resume game
-            Time.timeScale = 1f;
-
-            Debug.Log($"Selected upgrade: {upgrade.upgradeName}");
+            catch (Exception e)
+            {
+                Debug.LogError($"Error applying upgrade: {e.Message}");
+            }
+            finally
+            {
+                // Critical: Always restore timeScale, even on error
+                Time.timeScale = 1f;
+            }
         }
 
         public void Reset()

@@ -39,8 +39,32 @@ namespace NeonSurvivors.Core
 
         void Start()
         {
+            // Use coroutine to ensure proper initialization order
+            StartCoroutine(InitializeGameSequence());
+        }
+
+        System.Collections.IEnumerator InitializeGameSequence()
+        {
             // Initialize game data first
             InitializeGameData();
+
+            // Wait one frame to ensure GameDataInitializer.Awake() completes
+            yield return null;
+
+            // Verify GameDataInitializer is ready
+            int maxWaitFrames = 10;
+            int waitedFrames = 0;
+            while (GameDataInitializer.Instance == null && waitedFrames < maxWaitFrames)
+            {
+                yield return null;
+                waitedFrames++;
+            }
+
+            if (GameDataInitializer.Instance == null)
+            {
+                Debug.LogError("GameDataInitializer failed to initialize after waiting!");
+                yield break;
+            }
 
             // Create player
             CreatePlayer();
@@ -52,7 +76,8 @@ namespace NeonSurvivors.Core
             CreatePooledPrefabs();
 
             // Auto-start game after short delay
-            Invoke("AutoStartGame", 0.5f);
+            yield return new WaitForSeconds(0.5f);
+            AutoStartGame();
         }
 
         void InitializeGameData()
@@ -62,6 +87,10 @@ namespace NeonSurvivors.Core
                 GameObject dataObj = new GameObject("GameDataInitializer");
                 dataObj.AddComponent<GameDataInitializer>();
                 Debug.Log("Created GameDataInitializer");
+            }
+            else
+            {
+                Debug.Log("GameDataInitializer already exists");
             }
         }
 
