@@ -26,6 +26,12 @@ namespace NeonSurvivors.Player
         {
             currentHealth = maxHealth;
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+            // Update UI health bar
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateHealthBar(currentHealth, maxHealth);
+            }
         }
 
         void Update()
@@ -53,6 +59,12 @@ namespace NeonSurvivors.Player
             maxHealth = newMaxHealth;
             currentHealth = maxHealth * healthPercentage;
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+            // Update UI
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateHealthBar(currentHealth, maxHealth);
+            }
         }
 
         public void TakeDamage(float damage)
@@ -64,6 +76,12 @@ namespace NeonSurvivors.Player
             currentHealth = Mathf.Max(0, currentHealth);
 
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+            // Update UI
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateHealthBar(currentHealth, maxHealth);
+            }
 
             // Trigger invincibility
             isInvincible = true;
@@ -84,6 +102,12 @@ namespace NeonSurvivors.Player
             currentHealth += amount;
             currentHealth = Mathf.Min(currentHealth, maxHealth);
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
+
+            // Update UI
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateHealthBar(currentHealth, maxHealth);
+            }
         }
 
         public void FullHeal()

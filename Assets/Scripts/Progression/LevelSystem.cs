@@ -58,6 +58,12 @@ namespace NeonSurvivors.Player
             currentXP += amount;
             OnXPGained?.Invoke(currentXP, xpToNextLevel);
 
+            // Update UI XP bar
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateXPBar(currentXP, xpToNextLevel);
+            }
+
             while (currentXP >= xpToNextLevel)
             {
                 LevelUp();
@@ -71,6 +77,12 @@ namespace NeonSurvivors.Player
             xpToNextLevel = Mathf.RoundToInt(1000 * Mathf.Pow(1.1f, currentLevel - 1));
 
             OnLevelUp?.Invoke(currentLevel);
+
+            // Update UI XP bar
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.UpdateXPBar(currentXP, xpToNextLevel);
+            }
 
             // Show upgrade selection UI
             ShowUpgradeSelection();

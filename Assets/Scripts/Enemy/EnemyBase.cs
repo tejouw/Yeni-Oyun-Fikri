@@ -24,6 +24,7 @@ namespace NeonSurvivors.Enemy
         [Header("Status Effects")]
         public bool isFrozen = false;
         public float freezeTimer = 0f;
+        public float originalMoveSpeed = 0f;
         public bool isBurning = false;
         public float burnTimer = 0f;
         public float burnDamage = 0f;
@@ -119,6 +120,8 @@ namespace NeonSurvivors.Enemy
                 if (freezeTimer <= 0)
                 {
                     isFrozen = false;
+                    // Restore original move speed
+                    moveSpeed = originalMoveSpeed;
                 }
             }
 
@@ -329,9 +332,15 @@ namespace NeonSurvivors.Enemy
 
         public void ApplyFreeze(float duration)
         {
+            if (!isFrozen)
+            {
+                // Save original speed before slowing
+                originalMoveSpeed = moveSpeed;
+            }
+
             isFrozen = true;
             freezeTimer = duration;
-            moveSpeed *= 0.5f; // Slow down when frozen
+            moveSpeed = originalMoveSpeed * 0.5f; // Slow down to 50% when frozen
         }
 
         public void ApplyBurn(float damagePerSecond, float duration)

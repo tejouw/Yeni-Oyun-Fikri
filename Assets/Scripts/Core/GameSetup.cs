@@ -1,9 +1,11 @@
 using UnityEngine;
+using System.Collections.Generic;
 using NeonSurvivors.Player;
 using NeonSurvivors.Enemy;
 using NeonSurvivors.Monetization;
 using NeonSurvivors.Utilities;
 using NeonSurvivors.Data;
+using NeonSurvivors.Progression;
 
 namespace NeonSurvivors.Core
 {
@@ -177,7 +179,8 @@ namespace NeonSurvivors.Core
             player = new GameObject("Player");
             player.tag = "Player";
             player.transform.position = playerSpawnPosition;
-            player.layer = LayerMask.NameToLayer("Default");
+            // Use Default layer (layer 0) - Unity's built-in layer
+            player.layer = 0;
 
             // Add components
             player.AddComponent<Rigidbody>();
@@ -224,6 +227,11 @@ namespace NeonSurvivors.Core
                 GameObject camObj = new GameObject("Main Camera");
                 mainCam = camObj.AddComponent<Camera>();
                 camObj.tag = "MainCamera";
+                Debug.Log("Created new camera");
+            }
+            else
+            {
+                Debug.Log("Using existing camera");
             }
 
             // Top-down view
@@ -267,11 +275,19 @@ namespace NeonSurvivors.Core
             if (poolManager == null)
                 return;
 
-            // Create prefabs and add to pool configuration
-            poolManager.pools.Add(CreateEnemyPool("Enemy_Basic", Color.red, EnemyMeshType.Cube));
-            poolManager.pools.Add(CreateEnemyPool("Enemy_Fast", Color.yellow, EnemyMeshType.Pyramid));
-            poolManager.pools.Add(CreateEnemyPool("Enemy_Tank", Color.blue, EnemyMeshType.Sphere));
+            // Create pools for all enemy types dynamically
+            if (GameDataInitializer.Instance != null)
+            {
+                List<EnemyData> enemies = GameDataInitializer.Instance.GetAllEnemies();
+                foreach (var enemy in enemies)
+                {
+                    string poolTag = $"Enemy_{enemy.enemyType}";
+                    poolManager.pools.Add(CreateEnemyPool(poolTag, enemy.enemyColor, enemy.meshType));
+                    Debug.Log($"Created pool for {poolTag}");
+                }
+            }
 
+            // Create projectile pool
             poolManager.pools.Add(CreateProjectilePool("Projectile_Player", Color.cyan));
 
             Debug.Log($"Setup {poolManager.pools.Count} object pools");
