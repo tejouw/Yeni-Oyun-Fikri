@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using NeonSurvivors.Core;
 
 namespace NeonSurvivors.Player
 {
@@ -133,11 +134,14 @@ namespace NeonSurvivors.Player
 
             long cost = GetUpgradeCost(upgrade);
 
-            if (Core.GameManager.Instance.SpendGold(cost))
+            if (GameManager.Instance != null && GameManager.Instance.SpendGold(cost))
             {
                 upgrade.currentLevel++;
                 Debug.Log($"Purchased {upgrade.upgradeName} level {upgrade.currentLevel}");
-                SaveManager.Instance.SaveGame();
+                if (SaveManager.Instance != null)
+                {
+                    SaveManager.Instance.SaveGame();
+                }
                 return true;
             }
             else

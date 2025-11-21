@@ -33,9 +33,7 @@ namespace NeonSurvivors.VFX
         /// </summary>
         public void PlayExplosion(Vector3 position, float radius, Color color)
         {
-            Debug.Log($"VFX: Explosion at {position} with radius {radius}");
-            // TODO: Spawn pooled explosion particle system
-            // PoolManager.Instance.SpawnFromPool("VFX_Explosion", position, Quaternion.identity);
+            SimpleParticleSystem.CreateExplosion(position, color, radius);
         }
 
         /// <summary>
@@ -44,9 +42,7 @@ namespace NeonSurvivors.VFX
         /// </summary>
         public void PlayHitFlash(GameObject target, Color flashColor, float duration = 0.1f)
         {
-            Debug.Log($"VFX: Hit flash on {target.name}");
-            // TODO: Implement material flash coroutine
-            // StartCoroutine(FlashMaterial(target, flashColor, duration));
+            SimpleParticleSystem.CreateHitFlash(target, flashColor, duration);
         }
 
         /// <summary>
@@ -55,10 +51,7 @@ namespace NeonSurvivors.VFX
         /// </summary>
         public void ShowDamageNumber(Vector3 position, float damage, bool isCritical = false)
         {
-            Debug.Log($"VFX: Damage number {damage} at {position} (Critical: {isCritical})");
-            // TODO: Spawn floating text from pool
-            // Color textColor = isCritical ? Color.yellow : Color.white;
-            // float textScale = isCritical ? 1.5f : 1f;
+            SimpleParticleSystem.CreateDamageNumber(position, damage, isCritical);
         }
 
         /// <summary>
@@ -67,9 +60,7 @@ namespace NeonSurvivors.VFX
         /// </summary>
         public void PlayProjectileTrail(GameObject projectile, Color trailColor)
         {
-            Debug.Log($"VFX: Projectile trail for {projectile.name}");
-            // TODO: Add TrailRenderer component if not exists
-            // TrailRenderer trail = projectile.GetComponent<TrailRenderer>();
+            SimpleParticleSystem.CreateProjectileTrail(projectile, trailColor);
         }
 
         /// <summary>
@@ -78,9 +69,7 @@ namespace NeonSurvivors.VFX
         /// </summary>
         public void PlayLevelUpEffect(Vector3 playerPosition)
         {
-            Debug.Log($"VFX: Level up effect at {playerPosition}");
-            // TODO: Spawn level-up particle burst
-            // PoolManager.Instance.SpawnFromPool("VFX_LevelUp", playerPosition, Quaternion.identity);
+            SimpleParticleSystem.CreateExplosion(playerPosition, Color.cyan, 3f, 30);
         }
 
         /// <summary>

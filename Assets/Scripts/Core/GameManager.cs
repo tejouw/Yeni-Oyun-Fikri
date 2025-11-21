@@ -86,6 +86,12 @@ namespace NeonSurvivors.Core
             isGameRunning = false;
             currentState = GameState.GameOver;
 
+            // Record stats
+            if (StatsManager.Instance != null)
+            {
+                StatsManager.Instance.RecordGameEnd(currentWave, totalKills, survivalTime, goldEarnedThisRun);
+            }
+
             // Add run gold to total
             AddGold(goldEarnedThisRun);
 
